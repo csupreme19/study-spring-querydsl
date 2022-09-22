@@ -1,6 +1,8 @@
 package study.querydsl;
 
+import com.querydsl.core.types.dsl.Wildcard;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,10 +12,12 @@ import study.querydsl.entity.Member;
 import study.querydsl.entity.Team;
 
 import javax.persistence.EntityManager;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static study.querydsl.entity.QMember.member;
 
+@Slf4j
 @SpringBootTest
 @Transactional
 public class QuerydslBasicTest {
@@ -78,5 +82,39 @@ public class QuerydslBasicTest {
                 .fetchOne();
 
         assertThat(findMember.getUsername()).isEqualTo("member1");
+    }
+
+    @Test
+    public void resultFetchTest() {
+        List<Member> fetch = queryFactory
+                .selectFrom(member)
+                .fetch();
+
+        Member fetchOne = queryFactory
+                .selectFrom(member)
+                .where(member.username.startsWith("ㄴㅇㄹㅇㄴmember"))
+                .fetchOne();
+
+        Member fetchFirst = queryFactory
+                .selectFrom(member)
+                .fetchFirst();
+
+        // Deprecated
+//        QueryResults<Member> fetchResults = queryFactory
+//                .selectFrom(member)
+//                .fetchResults();
+//
+//        fetchResults.getTotal();
+//        List<Member> contents = fetchResults.getResults();
+
+        // Deprecated
+//        long fetchCount = queryFactory
+//                .selectFrom(member)
+//                .fetchCount();
+
+        Long fetchCount = queryFactory
+                .select(Wildcard.count)
+                .from(member)
+                .fetchOne();
     }
 }
