@@ -11,6 +11,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
+import study.querydsl.dto.MemberDto;
+import study.querydsl.dto.UserDto;
 import study.querydsl.entity.Member;
 import study.querydsl.entity.QMember;
 import study.querydsl.entity.Team;
@@ -20,6 +22,8 @@ import javax.persistence.EntityManagerFactory;
 import javax.persistence.PersistenceUnit;
 import java.util.List;
 
+import static com.querydsl.core.types.ExpressionUtils.as;
+import static com.querydsl.core.types.Projections.*;
 import static com.querydsl.jpa.JPAExpressions.select;
 import static org.assertj.core.api.Assertions.assertThat;
 import static study.querydsl.entity.QMember.member;
@@ -431,5 +435,66 @@ public class QuerydslBasicTest {
             System.out.println("username = " + username);
             System.out.println("age = " + age);
         }
+    }
+
+    @Test
+    public void findDtoByJPQL() {
+        List<MemberDto> resultList = em.createQuery("select new study.querydsl.dto.MemberDto(m.username, m.age) from Member m", MemberDto.class)
+                .getResultList();
+
+        resultList.forEach(System.out::println);
+    }
+
+    @Test
+    public void findDtoBySetter() {
+        List<MemberDto> fetch = queryFactory
+                .select(bean(MemberDto.class
+                        , member.username
+                        , member.age))
+                .from(member)
+                .fetch();
+
+        fetch.forEach(System.out::println);
+    }
+
+    @Test
+    public void findDtoByField() {
+        List<MemberDto> fetch = queryFactory
+                .select(fields(MemberDto.class
+                        , member.username
+                        , member.age))
+                .from(member)
+                .fetch();
+
+        fetch.forEach(System.out::println);
+    }
+
+    @Test
+    public void findUserDtoByField() {
+        QMember memberSub = new QMember("memberSub");
+
+        List<UserDto> fetch = queryFactory
+                .select(
+                        fields(UserDto.class
+                                , member.username.as("name")
+                                , as(select(memberSub.age.max())
+                                        .from(memberSub), "age"))
+                )
+                .from(member)
+                .fetch();
+
+        fetch.forEach(System.out::println);
+    }
+
+    @Test
+    public void findDtoByConstructor() {
+        List<UserDto> fetch = queryFactory
+                .select(constructor(UserDto.class
+                        , member.username
+                        , member.age))
+                .from(member)
+                .fetch();
+
+        fetch.forEach(System.out::println);
     }
 }
