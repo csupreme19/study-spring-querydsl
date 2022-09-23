@@ -2,7 +2,9 @@ package study.querydsl;
 
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.dsl.CaseBuilder;
+import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.Wildcard;
+import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
@@ -19,6 +21,7 @@ import javax.persistence.EntityManagerFactory;
 import javax.persistence.PersistenceUnit;
 import java.util.List;
 
+//import static com.querydsl.jpa.JPAExpressions.select;
 import static com.querydsl.jpa.JPAExpressions.select;
 import static org.assertj.core.api.Assertions.assertThat;
 import static study.querydsl.entity.QMember.member;
@@ -374,6 +377,30 @@ public class QuerydslBasicTest {
                         .when(member.age.between(0, 20)).then("0~20살")
                         .when(member.age.between(21, 30)).then("21살~30살")
                         .otherwise("기타"))
+                .from(member)
+                .fetch();
+
+        System.out.println("fetch = " + fetch);
+
+    }
+
+    @Test
+    public void constant() {
+
+        List<Tuple> fetch = queryFactory
+                .select(member.username, Expressions.constant("A"))
+                .from(member)
+                .fetch();
+
+        fetch.forEach(System.out::println);
+
+    }
+
+    @Test
+    public void concat() {
+
+        List<String> fetch = queryFactory
+                .select(member.username.concat("_").concat(member.age.stringValue()))
                 .from(member)
                 .fetch();
 
