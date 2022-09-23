@@ -242,4 +242,39 @@ public class QuerydslBasicTest {
                 .containsExactly("teamA", "teamB");
 
     }
+
+    /**
+     * 회원과 팀을 조인하면서 팀 이름이 teamA인 경우만 조인, 회원은 모두 조회
+     * JPQL: select m, t from Member m join m.team t on t.name = 'teamA'
+     */
+    @Test
+    public void join_on_filtering() {
+        List<Tuple> teamA = queryFactory
+                .select(member, team)
+                .from(member)
+                .leftJoin(member.team, team)
+                .on(team.name.eq("teamA"))
+                .fetch();
+
+        teamA.forEach(System.out::println);
+    }
+
+    /**
+     * 연관관계 없는 엔티티 외부 조인
+     * 회원 이름 = 팀 이름
+     */
+    @Test
+    public void join_on_no_relation() {
+        em.persist(new Member("teamA"));
+        em.persist(new Member("teamB"));
+        em.persist(new Member("teamC"));
+
+        List<Tuple> fetch = queryFactory
+                .select(member, team)
+                .from(member)
+                .leftJoin(team).on(member.username.eq(team.name))
+                .fetch();
+
+        fetch.forEach(System.out::println);
+    }
 }
