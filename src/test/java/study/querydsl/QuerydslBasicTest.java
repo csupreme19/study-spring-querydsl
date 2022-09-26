@@ -568,5 +568,42 @@ public class QuerydslBasicTest {
                 .and(ageEq(age));
     }
 
+    @Test
+    public void bulkUpdate() {
+        long count = queryFactory
+                .update(member)
+                .set(member.username, "비회원")
+                .where(member.age.lt(28))
+                .execute();
+
+        // 벌크 연산(수정, 삭제)는 영속성 컨텍스트를 무시한다
+        // 이를 맞춰주기 위해 영속성 컨텍스트 초기화
+        em.flush();
+        em.clear();
+
+        List<Member> fetch = queryFactory
+                .selectFrom(member)
+                .fetch();
+
+
+        fetch.forEach(System.out::println);
+    }
+
+    @Test
+    public void bulkAdd() {
+        queryFactory
+                .insert(member)
+                .set(member.age, member.age.add(1))
+                .execute();
+    }
+
+    @Test
+    public void bulkDelete() {
+        queryFactory
+                .delete(member)
+                .where(member.age.gt(20))
+                .execute();
+    }
+
 
 }
