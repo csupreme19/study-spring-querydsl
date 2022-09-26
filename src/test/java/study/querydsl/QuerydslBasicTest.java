@@ -605,5 +605,30 @@ public class QuerydslBasicTest {
                 .execute();
     }
 
+    @Test
+    public void sqlFunction() {
+        List<String> fetch = queryFactory
+                .select(
+                        Expressions.stringTemplate("function('replace', {0}, {1}, {2})",
+                                member.username, "member", "M"))
+                .from(member)
+                .fetch();
+
+        fetch.forEach(System.out::println);
+
+    }
+
+    @Test
+    public void sqlFunction2() {
+        List<String> fetch = queryFactory
+                .select(member.username)
+                .from(member)
+//                .where(member.username.eq(Expressions.stringTemplate("function('lower', {0})", member.username)))
+                .where(member.username.eq(member.username.lower()))
+                .fetch();
+
+        fetch.forEach(System.out::println);
+
+    }
 
 }
