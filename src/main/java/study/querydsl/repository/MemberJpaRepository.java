@@ -1,13 +1,16 @@
 package study.querydsl.repository;
 
 import com.querydsl.core.BooleanBuilder;
-import com.querydsl.core.types.Predicate;
+import com.querydsl.core.types.Order;
+import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.BooleanExpression;
-import com.querydsl.core.types.dsl.Expressions;
+import com.querydsl.core.types.dsl.PathBuilder;
+import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Repository;
-import org.springframework.util.StringUtils;
 import study.querydsl.dto.MemberSearchCondition;
 import study.querydsl.dto.MemberTeamDto;
 import study.querydsl.dto.QMemberTeamDto;
@@ -55,6 +58,19 @@ public class MemberJpaRepository {
         return queryFactory
                 .selectFrom(member)
                 .fetch();
+    }
+
+    public List<Member> findAll_OrderBy(Pageable pageable) {
+        JPAQuery<Member> query = queryFactory
+                .selectFrom(member);
+
+        for(Sort.Order o : pageable.getSort()) {
+            PathBuilder pathBuilder = new PathBuilder(member.getType(), member.getMetadata());
+            query.orderBy(new OrderSpecifier(o.isAscending() ? Order.ASC : Order.DESC
+                    , pathBuilder.get(o.getProperty())));
+        }
+
+        return query.fetch();
     }
 
     public List<Member> findByUsername(String username) {
